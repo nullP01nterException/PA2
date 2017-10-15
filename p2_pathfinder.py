@@ -1,1 +1,64 @@
-from math import inf, sqrtfrom heapq import heappop, heappushdef find_path (source_point, destination_point, mesh):    """    Searches for a path from source_point to destination_point through the mesh    Args:        source_point: starting point of the pathfinder        destination_point: the ultimate goal the pathfinder must reach        mesh: pathway constraints the path adheres to    Returns:        A path (list of points) from source_point to destination_point if exists        A list of boxes explored by the algorithm    """        path = []    boxes = {}    for box in mesh['boxes']:        if(source_point[1]>box[0] and source_point[1]<box[1] and source_point[0]>box[2] and source_point[0]<box[3]):            boxes[box]='source'               elif(destination_point[1]>box[0] and destination_point[0]<box[1] and destination_point[0]>box[2] and destination_point[0]<box[3]):            boxes[box]='destination'    print(source_point)    print(destination_point)    print(boxes)    return path, boxes.keys()
+from math import inf, sqrt
+from heapq import heappop, heappush
+
+def find_path (source_point, destination_point, mesh):
+
+    """
+    Searches for a path from source_point to destination_point through the mesh
+
+    Args:
+        source_point: starting point of the pathfinder
+        destination_point: the ultimate goal the pathfinder must reach
+        mesh: pathway constraints the path adheres to
+
+    Returns:
+
+        A path (list of points) from source_point to destination_point if exists
+        A list of boxes explored by the algorithm
+    """
+    
+    path = []
+    box_path = []
+    boxes = {}
+    queue=[]
+    parent={}
+    visited=set()
+    print("source", source_point)
+    print("dest", destination_point)
+    for box in mesh['boxes']:
+        if(source_point[1]>box[2] and source_point[1]<box[3] and source_point[0]>box[0] and source_point[0]<box[1]):
+            boxes[box]='source'
+            source_box=box
+            queue.append(box)
+            parent[box]=0
+        if(destination_point[1]>box[2] and destination_point[1]<box[3] and destination_point[0]>box[0] and destination_point[0]<box[1]):
+            boxes[box]='destination'
+            destination_box=box
+    print(boxes)
+    """while queue:
+        bfspath=queue.pop(0)
+        if node == destination_box:
+            path.append(bfspath)
+        for adjacent in mesh['adj'][bfspath]:
+           new_path= list(bfspath)
+           new_path.append(adjacent)
+           queue.append(new_path)
+    print(path)"""
+    while queue:
+        bfspath=queue.pop(0)
+        #print('bfspath',bfspath)
+        if bfspath == destination_box:
+            temp=bfspath
+            while parent[temp] != source_box:
+                box_path.append(temp)
+                print('path printing', box_path)
+                temp=parent[temp]
+            box_path.append(source_box)
+            break
+        for adjacent in mesh.get('adj', {}).get(bfspath):
+            if adjacent not in visited:
+                parent[adjacent]=bfspath
+                queue.append(adjacent)
+                visited.add(bfspath)
+    print(path)
+    return path, boxes.keys()
