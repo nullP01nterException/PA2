@@ -1,6 +1,11 @@
 from math import inf, sqrt
 from heapq import heappop, heappush
 
+def point_distance(p1, p2):
+    dist = sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+    print("dist", dist)
+    return dist
+
 def find_path (source_point, destination_point, mesh):
 
     """
@@ -16,7 +21,6 @@ def find_path (source_point, destination_point, mesh):
         A path (list of points) from source_point to destination_point if exists
         A list of boxes explored by the algorithm
     """
-    
     path = []
     box_path = []
     boxes = {}
@@ -34,24 +38,13 @@ def find_path (source_point, destination_point, mesh):
         if(destination_point[1]>box[2] and destination_point[1]<box[3] and destination_point[0]>box[0] and destination_point[0]<box[1]):
             boxes[box]='destination'
             destination_box=box
-    print(boxes)
-    """while queue:
-        bfspath=queue.pop(0)
-        if node == destination_box:
-            path.append(bfspath)
-        for adjacent in mesh['adj'][bfspath]:
-           new_path= list(bfspath)
-           new_path.append(adjacent)
-           queue.append(new_path)
-    print(path)"""
+
     while queue:
         bfspath=queue.pop(0)
-        #print('bfspath',bfspath)
         if bfspath == destination_box:
             temp=bfspath
             while parent[temp] != source_box:
                 box_path.append(temp)
-                print('path printing', box_path)
                 temp=parent[temp]
             box_path.append(source_box)
             break
@@ -60,5 +53,9 @@ def find_path (source_point, destination_point, mesh):
                 parent[adjacent]=bfspath
                 queue.append(adjacent)
                 visited.add(bfspath)
-    print(path)
+    box_path.reverse()
+    print("box_path", box_path)
+
+    if len(box_path) == 0:
+        print("No path found!")
     return path, boxes.keys()
