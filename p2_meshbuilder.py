@@ -10,7 +10,6 @@ from numpy import zeros_like
 
 def build_mesh(image, min_feature_size):
     def scan(box):
-
         x1, x2, y1, y2 = box
         area = (x2 - x1) * (y2 - y1)
 
