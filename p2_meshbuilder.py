@@ -28,6 +28,7 @@ def build_mesh(image, min_feature_size):
             if x2 - x1 > y2 - y1:
 
                 cut = x1 + (x2 - x1) / 2 + 1
+                cut = int(cut)
                 first_box = (x1, cut, y1, y2)
                 second_box = (cut, x2, y1, y2)
 
@@ -40,6 +41,7 @@ def build_mesh(image, min_feature_size):
             else:
 
                 cut = y1 + (y2 - y1) / 2 + 1
+                cut = int(cut)
                 first_box = (x1, x2, y1, cut)
                 second_box = (x1, x2, cut, y2)
 
