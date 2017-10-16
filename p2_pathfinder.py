@@ -3,7 +3,6 @@ from heapq import heappop, heappush
 
 def point_distance(p1, p2):
     dist = sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
-    print("dist", dist)
     return dist
 
 def find_path (source_point, destination_point, mesh):
@@ -26,7 +25,9 @@ def find_path (source_point, destination_point, mesh):
     boxes = {}
     queue=[]
     parent={}
+    detail_points={}
     visited=set()
+    
     print("source", source_point)
     print("dest", destination_point)
     for box in mesh['boxes']:
@@ -34,7 +35,7 @@ def find_path (source_point, destination_point, mesh):
             boxes[box]='source'
             source_box=box
             queue.append(box)
-            parent[box]=0
+            parent[box]=source_box
         if(destination_point[1]>box[2] and destination_point[1]<box[3] and destination_point[0]>box[0] and destination_point[0]<box[1]):
             boxes[box]='destination'
             destination_box=box
@@ -46,16 +47,52 @@ def find_path (source_point, destination_point, mesh):
             while parent[temp] != source_box:
                 box_path.append(temp)
                 temp=parent[temp]
+                print(temp)
             box_path.append(source_box)
             break
         for adjacent in mesh.get('adj', {}).get(bfspath):
             if adjacent not in visited:
-                parent[adjacent]=bfspath
-                queue.append(adjacent)
-                visited.add(bfspath)
+                 parent[adjacent]=bfspath
+                 queue.append(adjacent)
+                 visited.add(bfspath)
     box_path.reverse()
-    print("box_path", box_path)
+    for index in box_path:
+        boxes[index]=0
+    detail_points[source_box]=source_point
+    detail_points[destination_box]=destination_point
 
+    """for index in range(len(box_path)):
+        if(index==0):
+            continue
+        print("detail points", detail_points)
+        print("box path", box_path)
+        print("boxpath index", box_path[index-1])
+        print("detail points box path index", detail_points[box_path[index-1]])
+        
+        if box_path[index] not in detail_points:
+            start_point=detail_points[box_path[index-1]]
+            x_range_min=max(box_path[index][0],box_path[index-1][0])
+            x_range_max=min(box_path[index][1],box_path[index-1][1])
+            y_range_min=max(box_path[index][2],box_path[index-1][2])
+            y_range_max=min(box_path[index][3],box_path[index-1][3])
+            if x_range_min == x_range_max:
+                print('increment')
+                if start_point[1] > y_range_min and start_point[1] < y_range_max:
+                    detail_points[box_path[index]]=(x_range_min, start_point[1])
+                elif point_distance(start_point, (x_range_min, y_range_min)) < point_distance(start_point, (x_range_min, y_range_max)):
+                    detail_points[box_path[index]]=(x_range_min, y_range_min)
+                else:
+                    detail_points[box_path[index]]=(x_range_min, y_range_max)
+            if y_range_min == y_range_max:
+                print('increment')
+                if start_point[0] > x_range_min and start_point[0] < x_range_max:
+                    detail_points[box_path[index]]=(start_point[0], y_range_min)
+                elif point_distance(start_point, (x_range_min, y_range_min)) < point_distance(start_point, (x_range_max, y_range_min)):
+                    detail_points[box_path[index]]=(x_range_min, y_range_min)
+                else:
+                    detail_points[box_path[index]]=(x_range_max, y_range_min) """
+    print(box_path)                
     if len(box_path) == 0:
         print("No path found!")
+    detail_points[destination_box]=destination_point
     return path, boxes.keys()
