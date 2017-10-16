@@ -11,6 +11,7 @@ from numpy import zeros_like
 def build_mesh(image, min_feature_size):
     def scan(box):
         x1, x2, y1, y2 = box
+
         area = (x2 - x1) * (y2 - y1)
 
         if area < min_feature_size or (image[x1:x2, y1:y2] == 255).all() or (image[x1:x2, y1:y2] == 0).all():
