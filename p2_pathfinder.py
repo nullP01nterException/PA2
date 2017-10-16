@@ -108,7 +108,8 @@ def find_bidirectional_path(source_point, destination_point, mesh):
     queue = []
     forward_parent = {}
     backward_parent = {}
-    detail_points = {}
+    forward_detail_points = {}
+    backward_detail_points={}
     tent = {}
     visited = set()
     forward_distances = {}
@@ -129,8 +130,8 @@ def find_bidirectional_path(source_point, destination_point, mesh):
             destination_box = box
             backward_parent[box] = box
             backward_distances[box] = 0
-    detail_points[source_box] = source_point
-    detail_points[destination_box] = destination_point
+    forward_detail_points[source_box] = source_point
+    backward_detail_points[destination_box] = destination_point
     heappush(queue,(0, source_box, 'destination'))
     heappush(queue,(0, destination_box, 'source'))
     #A*
@@ -140,37 +141,45 @@ def find_bidirectional_path(source_point, destination_point, mesh):
         if info[2] == "destination":
             curr_dist = forward_distances[info[1]]
             if curr_box in backward_parent:
-                walker = backward_parent[curr_box]
-                while walker != destination_box:
-                    box_path.append(walker)
-                    walker = backward_parent[walker]
-                box_path.append(destination_box)
-
+                print('trigger1')
                 walker = curr_box
+                temp = curr_box
+                print(walker)
                 while walker != source_box:
                     box_path.append(walker)
                     walker = forward_parent[walker]
                 box_path.append(source_box)
+                walker = backward_parent[temp]
+                print(walker)
+                while walker != destination_box:
+                    box_path.insert(0,walker)
+                    walker = backward_parent[walker]
+                box_path.insert(0,destination_box)
                 break
         else:
             curr_dist = backward_distances[info[1]]
             if curr_box in forward_parent:
-                walker = forward_parent[curr_box]
-                while walker != source_box:
-                    box_path.append(walker)
-                    walker = forward_parent[walker]
-                box_path.append(source_box)
-
                 walker = curr_box
+                temp = curr_box
+                print(walker)
                 while walker != destination_box:
                     box_path.append(walker)
                     walker = backward_parent[walker]
                 box_path.append(destination_box)
+                
+                walker = forward_parent[temp]
+                print(walker)
+                while walker != source_box:
+                    box_path.insert(0,walker)
+                    walker = forward_parent[walker]
+                box_path.insert(0,source_box)
                 break
 
         for adjacent in mesh.get('adj', {}).get(curr_box):
-
-            start_point = detail_points[curr_box]
+            if info[2]=="destination":
+                start_point = forward_detail_points[curr_box]
+            else:
+                start_point = backward_detail_points[curr_box]
             x_range_min = max(curr_box[0], adjacent[0])
             x_range_max = min(curr_box[1], adjacent[1])
             y_range_min = max(curr_box[2], adjacent[2])
@@ -191,34 +200,47 @@ def find_bidirectional_path(source_point, destination_point, mesh):
                     tent[adjacent] = (x_range_min, y_range_min)
                 else:
                     tent[adjacent] = (x_range_max, y_range_min)
-
-            pathcost = curr_dist + point_distance(detail_points[curr_box], tent[adjacent])
+            if info[2]=="destination":
+                pathcost = curr_dist + point_distance(forward_detail_points[curr_box], tent[adjacent])
+            else:
+                pathcost = curr_dist + point_distance(backward_detail_points[curr_box], tent[adjacent])
             if info[2] == "destination":
                 if adjacent not in forward_distances or pathcost < forward_distances[adjacent]:
-                    detail_points[adjacent] = tent[adjacent]
+                    forward_detail_points[adjacent] = tent[adjacent]
+                    print(tent[adjacent])
                     forward_distances[adjacent] = pathcost
                     forward_parent[adjacent] = curr_box
-                    adjusted_cost = pathcost + point_distance(detail_points[curr_box], destination_point)
+                    adjusted_cost = pathcost + point_distance(forward_detail_points[curr_box], destination_point)
                     heappush(queue, (adjusted_cost, adjacent, "destination"))
             else:
                 if adjacent not in backward_distances or pathcost < backward_distances[adjacent]:
-                    detail_points[adjacent] = tent[adjacent]
+                    backward_detail_points[adjacent] = tent[adjacent]
                     backward_distances[adjacent] = pathcost
                     backward_parent[adjacent] = curr_box
-                    adjusted_cost = pathcost + point_distance(detail_points[curr_box], source_point)
+                    adjusted_cost = pathcost + point_distance(backward_detail_points[curr_box], source_point)
                     heappush(queue, (adjusted_cost, adjacent, "source"))
     #end A*
     if len(box_path) == 0:
         print("No path found!")
     else:
+        print("boxpath",box_path)
         for box_path_index in range(len(box_path) - 1):
-            segment = (detail_points[box_path[box_path_index]], detail_points[box_path[box_path_index + 1]])
+            print("boxiindex",box_path[box_path_index])
+            if box_path_index + 1 == len(box_path):
+            #if box_path[box_path_index] in forward_detail_points and box_path[box_path_index] in backward_detail_points:
+                print("here",box_path[box_path_index])
+                segment = (forward_detail_points[box_path[box_path_index+1]], backward_detail_points[box_path[box_path_index+1]])
+                
+            if box_path[box_path_index] in forward_detail_points and forward_detail_points[box_path[box_path_index+1]]:
+                segment = (forward_detail_points[box_path[box_path_index]], forward_detail_points[box_path[box_path_index+1]])
+            else:
+                segment = (backward_detail_points[box_path[box_path_index]], backward_detail_points[box_path[box_path_index+1]])
             path.append(segment)
-    if len(box_path) == 2:
+    if len(box_path) == 2 and box_path[0]==box_path[1]:
         path.append((source_point, destination_point))
     #elif len(box_path) > 1:
         #path.append((detail_points[box_path[0]], destination_point))
-    detail_points[destination_box] = destination_point
+    print("path",path)
     for box in box_path:
         boxes[box] = 0
     return path, boxes.keys()
