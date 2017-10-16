@@ -26,7 +26,9 @@ def find_path (source_point, destination_point, mesh):
     queue=[]
     parent={}
     detail_points={}
+    tent={}
     visited=set()
+    distances={}
     
     print("source", source_point)
     print("dest", destination_point)
@@ -34,65 +36,68 @@ def find_path (source_point, destination_point, mesh):
         if(source_point[1]>box[2] and source_point[1]<box[3] and source_point[0]>box[0] and source_point[0]<box[1]):
             boxes[box]='source'
             source_box=box
-            queue.append(box)
+            queue.append((0,box))
+            distances[box]=0
             parent[box]=source_box
         if(destination_point[1]>box[2] and destination_point[1]<box[3] and destination_point[0]>box[0] and destination_point[0]<box[1]):
             boxes[box]='destination'
             destination_box=box
-
-    while queue:
-        bfspath=queue.pop(0)
-        if bfspath == destination_box:
-            temp=bfspath
-            while parent[temp] != source_box:
-                box_path.append(temp)
-                temp=parent[temp]
-                print(temp)
-            box_path.append(source_box)
-            break
-        for adjacent in mesh.get('adj', {}).get(bfspath):
-            if adjacent not in visited:
-                 parent[adjacent]=bfspath
-                 queue.append(adjacent)
-                 visited.add(bfspath)
-    box_path.reverse()
-    for index in box_path:
-        boxes[index]=0
     detail_points[source_box]=source_point
     detail_points[destination_box]=destination_point
-
-    """for index in range(len(box_path)):
-        if(index==0):
-            continue
-        print("detail points", detail_points)
-        print("box path", box_path)
-        print("boxpath index", box_path[index-1])
-        print("detail points box path index", detail_points[box_path[index-1]])
+    while queue:
+        info = heappop(queue)
+        curr_dist = distances[info[1]]
+        curr_box = info[1]
         
-        if box_path[index] not in detail_points:
-            start_point=detail_points[box_path[index-1]]
-            x_range_min=max(box_path[index][0],box_path[index-1][0])
-            x_range_max=min(box_path[index][1],box_path[index-1][1])
-            y_range_min=max(box_path[index][2],box_path[index-1][2])
-            y_range_max=min(box_path[index][3],box_path[index-1][3])
+        if curr_box == destination_box:
+            walker=curr_box
+            while walker != source_box:
+                box_path.append(walker)
+                walker=parent[walker]
+            box_path.append(source_box)
+            break
+        for adjacent in mesh.get('adj', {}).get(curr_box):
+
+            start_point=detail_points[curr_box]
+            x_range_min=max(curr_box[0],adjacent[0])
+            x_range_max=min(curr_box[1],adjacent[1])
+            y_range_min=max(curr_box[2],adjacent[2])
+            y_range_max=min(curr_box[3],adjacent[3])
             if x_range_min == x_range_max:
-                print('increment')
-                if start_point[1] > y_range_min and start_point[1] < y_range_max:
-                    detail_points[box_path[index]]=(x_range_min, start_point[1])
+                if start_point[1] >= y_range_min and start_point[1] < y_range_max:
+                    tent[adjacent]=(x_range_min, start_point[1])
                 elif point_distance(start_point, (x_range_min, y_range_min)) < point_distance(start_point, (x_range_min, y_range_max)):
-                    detail_points[box_path[index]]=(x_range_min, y_range_min)
+                    tent[adjacent]=(x_range_min, y_range_min)
                 else:
-                    detail_points[box_path[index]]=(x_range_min, y_range_max)
+                    tent[adjacent]=(x_range_min, y_range_max)
             if y_range_min == y_range_max:
-                print('increment')
-                if start_point[0] > x_range_min and start_point[0] < x_range_max:
-                    detail_points[box_path[index]]=(start_point[0], y_range_min)
+                if start_point[0] >= x_range_min and start_point[0] < x_range_max:
+                    tent[adjacent]=(start_point[0], y_range_min)
                 elif point_distance(start_point, (x_range_min, y_range_min)) < point_distance(start_point, (x_range_max, y_range_min)):
-                    detail_points[box_path[index]]=(x_range_min, y_range_min)
+                    tent[adjacent]=(x_range_min, y_range_min)
                 else:
-                    detail_points[box_path[index]]=(x_range_max, y_range_min) """
-    print(box_path)                
+                    tent[adjacent]=(x_range_max, y_range_min)
+
+            pathcost=curr_dist+point_distance(detail_points[curr_box], tent[adjacent])
+            if adjacent not in distances or pathcost < distances[adjacent]:
+                detail_points[adjacent]=tent[adjacent]
+                distances[adjacent] = pathcost
+                parent[adjacent]= curr_box
+                adjusted_cost = pathcost + point_distance(detail_points[curr_box], destination_point)
+                heappush(queue, (adjusted_cost, adjacent))
+
+    print(detail_points)
     if len(box_path) == 0:
-        print("No path found!")
+        print("No path found!")    
+    else:
+        for box_path_index in range(len(box_path)-1):
+            segment = (detail_points[box_path[box_path_index]],detail_points[box_path[box_path_index+1]])
+            path.append(segment)
+    if len(box_path) == 1:
+        path.append((source_point, destination_point))
+    elif len(box_path) > 1:
+        path.append((detail_points[box_path[0]], destination_point))
     detail_points[destination_box]=destination_point
+    for box in box_path:
+        boxes[box]=0
     return path, boxes.keys()
