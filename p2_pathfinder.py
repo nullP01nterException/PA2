@@ -231,11 +231,15 @@ def find_bidirectional_path(source_point, destination_point, mesh):
                 print("here",box_path[box_path_index])
                 segment = (forward_detail_points[box_path[box_path_index+1]], backward_detail_points[box_path[box_path_index+1]])
                 
-            if box_path[box_path_index] in forward_detail_points and forward_detail_points[box_path[box_path_index+1]]:
+            if box_path[box_path_index] in forward_detail_points and box_path[box_path_index +1] in forward_detail_points:
                 segment = (forward_detail_points[box_path[box_path_index]], forward_detail_points[box_path[box_path_index+1]])
-            else:
+            elif box_path[box_path_index] in backward_detail_points and box_path[box_path_index +1] in backward_detail_points:
                 segment = (backward_detail_points[box_path[box_path_index]], backward_detail_points[box_path[box_path_index+1]])
             path.append(segment)
+        for samebox in forward_detail_points:
+            if samebox in backward_detail_points and forward_detail_points[samebox] != backward_detail_points[samebox] and samebox in box_path:
+                path.append((backward_detail_points[samebox], forward_detail_points[samebox]))
+                break
     if len(box_path) == 2 and box_path[0]==box_path[1]:
         path.append((source_point, destination_point))
     #elif len(box_path) > 1:
