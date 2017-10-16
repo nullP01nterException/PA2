@@ -85,8 +85,6 @@ def find_path (source_point, destination_point, mesh):
                 parent[adjacent]= curr_box
                 adjusted_cost = pathcost + point_distance(detail_points[curr_box], destination_point)
                 heappush(queue, (adjusted_cost, adjacent))
-
-    print(detail_points)
     if len(box_path) == 0:
         print("No path found!")    
     else:
