@@ -75,7 +75,7 @@ def on_click(event):
     else:
         destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
         try:
-            path, visited_boxes = p2_pathfinder.find_bidirectional_path(source_point, destination_point, mesh)
+            path, visited_boxes = p2_pathfinder.find_path(source_point, destination_point, mesh)
 
         except:
             destination_point = None
