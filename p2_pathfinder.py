@@ -53,8 +53,9 @@ def find_path (source_point, destination_point, mesh):
                 parent[adjacent]=bfspath
                 queue.append(adjacent)
                 visited.add(bfspath)
+
     box_path.reverse()
-    print("box_path", box_path)
+    print("adj", mesh.get("adj", {}).get((0,193,0,322)))
 
     if len(box_path) == 0:
         print("No path found!")
