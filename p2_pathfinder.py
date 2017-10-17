@@ -138,7 +138,6 @@ def find_path(source_point, destination_point, mesh):
                     walker = forward_parent[walker]
                 box_path.append(source_box)
                 walker = backward_parent[temp] #put second half of boxes in box path
-                print(walker)
                 while walker != destination_box:
                     box_path.insert(0,walker)
                     walker = backward_parent[walker]
